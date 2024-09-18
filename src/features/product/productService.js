@@ -34,7 +34,7 @@ const getProduct = async (id) => {
 };
 
 const getProductPrice = async(price) => {
-  const response = await axios.get(`${base_url}producr/${price}`, config);
+  const response = await axios.get(`${base_url}product/${price}`, config);
 
   return response.data
 }

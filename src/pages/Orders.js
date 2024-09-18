@@ -82,7 +82,7 @@ const Orders = () => {
         style={{ color: "#007bff", cursor: "pointer" }}
         onClick={() => fetchOrderDetails(order._id, order.orderby.firstname)} // Pass user's name when fetching details
       >
-        View Orders
+        Xem chi tiết
       </span>
     ),
     amount: order.paymentIntent?.amount,

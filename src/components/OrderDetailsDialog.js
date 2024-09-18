@@ -113,10 +113,10 @@ const OrderDetailsDialog = ({ open, handleClose, orderDetails, userName }) => {
         <FormControl fullWidth style={{ marginTop: "20px" }}>
           <InputLabel>Trạng thái đơn hàng</InputLabel>
           <Select value={orderStatus} onChange={handleStatusChange}>
-            <MenuItem value="Cash on Delivery">Cash on Delivery</MenuItem>
-            <MenuItem value="Delivered">Delivered</MenuItem>
-            <MenuItem value="Not Processed">Not Processed</MenuItem>
-            <MenuItem value="Processing">Processing</MenuItem>
+            <MenuItem value="Cash on Delivery">Thanh toán khi nhận hàng</MenuItem>
+            <MenuItem value="Delivered">Đã giao</MenuItem>
+            <MenuItem value="Not Processed">Chưa xử lý</MenuItem>
+            <MenuItem value="Processing">Đang gửi hàng</MenuItem>
           </Select>
         </FormControl>
       </DialogContent>
