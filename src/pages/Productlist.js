@@ -1,16 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Table } from "antd";
+import { Table, message } from "antd";
 import { BiEdit } from "react-icons/bi";
 import { AiFillDelete } from "react-icons/ai";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  deleteAProduct,
-  getProducts,
-  resetState,
-} from "../features/product/productSlice";
 import { Link } from "react-router-dom";
 import CustomModal from "../components/CustomModal";
 import { SearchProduct } from "../components/SearchProduct";
+import productService from "../features/product/productService"; // Import productService
 
 const columns = [
   {
@@ -50,60 +45,72 @@ const columns = [
 const Productlist = () => {
   const [open, setOpen] = useState(false);
   const [productID, setProductId] = useState("");
-  const [searchResults, setSearchResults] = useState([]); // State for search results
+  const [products, setProducts] = useState([]);
 
-  const dispatch = useDispatch();
+  // Hàm gọi API lấy danh sách sản phẩm
+  const fetchProducts = async () => {
+    try {
+      const response = await productService.getProducts(); // Gọi hàm từ productService
+      setProducts(response); // Lưu dữ liệu sản phẩm
+    } catch (error) {
+      console.error("Lỗi khi lấy sản phẩm:", error);
+      message.error("Lỗi khi tải danh sách sản phẩm.");
+    }
+  };
+
+  // Hàm gọi API để xóa sản phẩm
+  const deleteProduct = async (id) => {
+    try {
+      await productService.deleteProduct(id); // Gọi hàm delete từ productService
+      message.success("Xóa sản phẩm thành công!");
+      fetchProducts(); // Gọi lại để cập nhật danh sách sản phẩm
+      setOpen(false); // Đóng modal
+    } catch (error) {
+      console.error("Lỗi khi xóa sản phẩm:", error);
+      message.error("Xóa sản phẩm thất bại.");
+    }
+  };
 
   useEffect(() => {
-    dispatch(resetState());
-    dispatch(getProducts());
-  }, [dispatch]);
-
-  const productState = useSelector((state) => state.product.products);
-  const displayedProducts =
-    searchResults.length > 0 ? searchResults : productState; // Use search results if available
-
-  const data1 = displayedProducts.map((product, index) => ({
-    key: index + 1,
-    title: product.title,
-    brand: product.brand,
-    category: product.category,
-    color: product.color,
-    price: `${product.price}`,
-    action: (
-      <>
-        <Link
-          to={`/admin/product/${product._id}`} // Navigate to product update page
-          className="fs-3 text-danger"
-        >
-          <BiEdit />
-        </Link>
-        <button
-          className="ms-3 fs-3 text-danger bg-transparent border-0"
-          onClick={() => showModal(product._id)}
-        >
-          <AiFillDelete />
-        </button>
-      </>
-    ),
-  }));
+    fetchProducts(); // Lấy danh sách sản phẩm khi component được render
+  }, []);
 
   const showModal = (id) => {
     setOpen(true);
-    setProductId(id);
+    setProductId(id); // Lưu ID sản phẩm cần xóa
   };
 
   const hideModal = () => {
     setOpen(false);
   };
 
-  const deleteProduct = (id) => {
-    dispatch(deleteAProduct(id));
-    setOpen(false);
-    setTimeout(() => {
-      dispatch(getProducts());
-    }, 100);
-  };
+  const data1 = [];
+  for (let i = 0; i < products.length; i++) {
+    data1.push({
+      key: i + 1,
+      title: products[i].title,
+      brand: products[i].brand,
+      category: products[i].category,
+      color: products[i].color,
+      price: `${products[i].price}`,
+      action: (
+        <>
+          <Link
+            to={`/admin/product/${products[i]._id}`} // Chuyển sang trang update sản phẩm
+            className=" fs-3 text-danger"
+          >
+            <BiEdit />
+          </Link>
+          <button
+            className="ms-3 fs-3 text-danger bg-transparent border-0"
+            onClick={() => showModal(products[i]._id)}
+          >
+            <AiFillDelete />
+          </button>
+        </>
+      ),
+    });
+  }
 
   return (
     <div>
@@ -112,17 +119,18 @@ const Productlist = () => {
           <h3 className="mb-4 title">Danh sách sản phẩm</h3>
         </div>
         <div className="col-6">
-          <SearchProduct setSearchResults={setSearchResults} />
+          <SearchProduct />
         </div>
       </div>
       <div>
         <Table columns={columns} dataSource={data1} />
       </div>
+      {/* Modal xác nhận xóa sản phẩm */}
       <CustomModal
         hideModal={hideModal}
         open={open}
         performAction={() => {
-          deleteProduct(productID);
+          deleteProduct(productID); // Xóa sản phẩm được chọn
         }}
         title="Bạn có chắc chắn muốn xóa?"
       />
