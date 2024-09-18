@@ -77,10 +77,10 @@ const ViewEnq = () => {
               id=""
               onChange={(e) => setEnquiryStatus(e.target.value, getEnqId)}
             >
-              <option value="Submitted">Submitted</option>
-              <option value="Contacted">Contacted</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Resolved">Resolved</option>
+              <option value="Submitted">Đã gửi</option>
+              <option value="Contacted">Đã liên hệ</option>
+              <option value="In Progress">Đang giải quyết</option>
+              <option value="Resolved">Đã giải quyết</option>
             </select>
           </div>
         </div>
