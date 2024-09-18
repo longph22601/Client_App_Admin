@@ -41,7 +41,7 @@ const OrderDetailsDialog = ({ open, handleClose, orderDetails, userName }) => {
     try {
       // Call the API to update the order status
       await axios.put(
-        `${base_url}payment/order/${orderDetails?._id}/status`,
+        `${base_url}payment/order/${orderDetails?.order?._id}/status`,
         { orderStatus: newStatus },
         config
       );
