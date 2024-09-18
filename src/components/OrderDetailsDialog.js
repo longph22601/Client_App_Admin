@@ -25,11 +25,11 @@ import { config } from "../utils/axiosconfig"; // Config for headers
 
 const OrderDetailsDialog = ({ open, handleClose, orderDetails, userName }) => {
   const [orderStatus, setOrderStatus] = useState(""); // Initialize as an empty string
-
+  console.log(orderDetails);
   // Update orderStatus when orderDetails change
   useEffect(() => {
     if (orderDetails) {
-      setOrderStatus(orderDetails.orderStatus); // Set order status when order details are available
+      setOrderStatus(orderDetails?.order?.orderStatus); // Set order status when order details are available
     }
   }, [orderDetails]);
 
@@ -78,7 +78,7 @@ const OrderDetailsDialog = ({ open, handleClose, orderDetails, userName }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {orderDetails?.products?.map((product, index) => (
+              {orderDetails?.order?.products?.map((product, index) => (
                 <TableRow key={index}>
                   <TableCell>{product.product?.title || "N/A"}</TableCell>
                   <TableCell>{product.count}</TableCell>
@@ -90,10 +90,23 @@ const OrderDetailsDialog = ({ open, handleClose, orderDetails, userName }) => {
         </TableContainer>
 
         <Typography variant="h6" gutterBottom style={{ marginTop: "20px" }}>
-          Thành tiền: {orderDetails?.totalAmount?.toLocaleString()} VNĐ
+          Thành tiền: {orderDetails?.order?.totalAmount?.toLocaleString()} VNĐ
         </Typography>
+
         <Typography variant="h6">
-          Thời gian: {new Date(orderDetails?.createdAt).toLocaleString()}
+          Thời gian: {new Date(orderDetails?.order?.createdAt).toLocaleString()}
+        </Typography>
+
+        <Typography variant="h6" gutterBottom style={{ marginTop: "20px" }}>
+          Địa chỉ: {orderDetails?.address || "N/A"}
+        </Typography>
+
+        <Typography variant="h6" gutterBottom>
+          Số điện thoại: {orderDetails?.phone || "N/A"}
+        </Typography>
+
+        <Typography variant="h6" gutterBottom>
+          Phương thức thanh toán: {orderDetails?.order?.paymentMethod || "N/A"}
         </Typography>
 
         {/* Order Status Select */}

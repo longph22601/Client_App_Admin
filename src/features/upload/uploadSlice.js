@@ -6,15 +6,18 @@ export const uploadImg = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       const formData = new FormData();
+      // Duyệt qua mảng file và thêm vào FormData
       for (let i = 0; i < data.length; i++) {
         formData.append("images", data[i]);
       }
+      // Gọi service để upload ảnh
       return await uploadService.uploadImg(formData);
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(error); // Xử lý lỗi
     }
   }
 );
+
 export const delImg = createAsyncThunk(
   "delete/images",
   async (id, thunkAPI) => {

@@ -1,7 +1,7 @@
 import { React, useEffect, useState } from "react";
 import CustomInput from "../components/CustomInput";
 import ReactQuill from "react-quill";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "react-quill/dist/quill.snow.css";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -13,7 +13,13 @@ import { getColors } from "../features/color/colorSlice";
 import { Select } from "antd";
 import Dropzone from "react-dropzone";
 import { delImg, uploadImg } from "../features/upload/uploadSlice";
-import { createProducts, resetState, getAProduct, updateAProduct, } from "../features/product/productSlice";
+import {
+  createProducts,
+  resetState,
+  getAProduct,
+  updateAProduct,
+} from "../features/product/productSlice";
+
 let schema = yup.object().shape({
   title: yup.string().required("*Nhập tiêu đề"),
   description: yup.string().required("*Nhập mô tả sản phẩm"),
@@ -28,24 +34,23 @@ let schema = yup.object().shape({
   quantity: yup.number().required("*Nhập số lượng sản phẩm"),
 });
 
-const Addproduct = () => {
+const AddProduct = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [color, setColor] = useState([]);
   const [images, setImages] = useState([]);
-  console.log(color);
   const brandState = useSelector((state) => state.brand.brands);
   const catState = useSelector((state) => state.pCategory.pCategories);
   const colorState = useSelector((state) => state.color.colors);
-  const imgState = useSelector((state) => state.upload.images);
+  const imgState = useSelector((state) => state.upload.images || []);
+
   const newProduct = useSelector((state) => state.product);
   const location = useLocation();
-  const getProductId = location.pathname.split("/")[3];// Lấy ra tên sản phẩm
-  
+  const getProductId = location.pathname.split("/")[3]; // Lấy ra tên sản phẩm
 
-  const { 
+  const {
     productTilte,
-    productDescription, 
+    productDescription,
     productPrice,
     productCategory,
     productTags,
@@ -53,16 +58,18 @@ const Addproduct = () => {
     productQuantity,
     productImage,
     productBrand,
-    isSuccess, 
-    isError, 
-    isLoading, 
-    createdProduct, 
-    updateProduct } = newProduct;
+    isSuccess,
+    isError,
+    isLoading,
+    createdProduct,
+    updateProduct,
+  } = newProduct;
+
   useEffect(() => {
     dispatch(getBrands());
     dispatch(getCategories());
     dispatch(getColors());
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     if (getProductId !== undefined) {
@@ -70,11 +77,8 @@ const Addproduct = () => {
     } else {
       dispatch(resetState());
     }
-  }, [getProductId]);
+  }, [dispatch, getProductId]);
 
-  // useEffect (() =>{
-  //   if()
-  // })
   useEffect(() => {
     if (isSuccess && createdProduct) {
       toast.success("Thêm sản phẩm thành công!");
@@ -82,67 +86,65 @@ const Addproduct = () => {
     if (isError) {
       toast.error("Đã có lỗi xảy ra!");
     }
-    if (isSuccess && updateProduct) {//mình có add thêm điều kiện này khi ấn update sản phẩm
+    if (isSuccess && updateProduct) {
       toast.success("Cập nhật sản phẩm thành công!");
-      navigate("/admin/list-product")
+      navigate("/admin/list-product");
     }
-  }, [isSuccess, isError, isLoading]);
-  const coloropt = [];
-  colorState.forEach((i) => {
-    coloropt.push({
-      // label: i.title,
-      value: i.title,
-    });
-  });
-  const img = [];
-  imgState.forEach((i) => {
-    img.push({
-      public_id: i.public_id,
-      url: i.url,
-    });
-  });
+  }, [isSuccess, isError, isLoading, createdProduct, updateProduct, navigate]);
+
+  const colorOptions = colorState.map((i) => ({
+    value: i.title,
+  }));
 
   useEffect(() => {
-    formik.values.color = color ? color : " ";
-    formik.values.images = img;
-  }, [color, img]);
+    setImages(
+      imgState.map((i) => ({
+        public_id: i.public_id,
+        url: i.url,
+      }))
+    );
+  }, [imgState]);
+
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      title: productTilte ||"",
-      description: productDescription ||"",
+      title: productTilte || "",
+      description: productDescription || "",
       price: productPrice || "",
-      brand: productBrand ||  "",
+      brand: productBrand || "",
       category: productCategory || "",
       tags: productTags || "",
-      color: productColor || "",
+      color: productColor || [], // Khởi tạo `color` là mảng
       quantity: productQuantity || "",
       images: productImage || "",
     },
     validationSchema: schema,
     onSubmit: (values) => {
-      if (getProductId !== undefined) { //sửa sản phẩm trên database
+      values.images = images; // Gắn hình ảnh đã tải lên vào values
+      if (getProductId !== undefined) {
         const data = { id: getProductId, productData: values };
         dispatch(updateAProduct(data));
-        dispatch(resetState());
       } else {
         dispatch(createProducts(values));
-        formik.resetForm();
-        setColor(null);
-        setTimeout(() => {
-          dispatch(resetState());
-        }, 3000);
       }
+      formik.resetForm();
+      setTimeout(() => {
+        dispatch(resetState());
+        navigate("/admin/list-product");
+      }, 3000);
     },
   });
-  const handleColors = (e) => {
-    setColor(e);
-    console.log(color);
+
+  const handleColors = (value) => {
+    setColor(value);
+    formik.setFieldValue("color", value); // Cập nhật giá trị màu vào formik
   };
+
   return (
     <div>
       <h3 className="mb-4 title">
-        {getProductId !== undefined ? "Cập nhật" : "Thêm"} sản phẩm</h3>
+        {getProductId !== undefined ? "Cập nhật" : "Thêm"} sản phẩm
+      </h3>
       <div>
         <form
           onSubmit={formik.handleSubmit}
@@ -187,16 +189,13 @@ const Addproduct = () => {
             onBlur={formik.handleBlur("brand")}
             value={formik.values.brand}
             className="form-control py-3 mb-3"
-            id=""
           >
             <option value="">Chọn thương hiệu </option>
-            {brandState.map((i, j) => {
-              return (
-                <option key={j} value={i.title}>
-                  {i.title}
-                </option>
-              );
-            })}
+            {brandState.map((i, j) => (
+              <option key={j} value={i.title}>
+                {i.title}
+              </option>
+            ))}
           </select>
           <div className="error">
             {formik.touched.brand && formik.errors.brand}
@@ -207,16 +206,13 @@ const Addproduct = () => {
             onBlur={formik.handleBlur("category")}
             value={formik.values.category}
             className="form-control py-3 mb-3"
-            id=""
           >
             <option value="">Chọn loại sản phẩm </option>
-            {catState.map((i, j) => {
-              return (
-                <option key={j} value={i.title}>
-                  {i.title}
-                </option>
-              );
-            })}
+            {catState.map((i, j) => (
+              <option key={j} value={i.title}>
+                {i.title}
+              </option>
+            ))}
           </select>
           <div className="error">
             {formik.touched.category && formik.errors.category}
@@ -227,7 +223,6 @@ const Addproduct = () => {
             onBlur={formik.handleBlur("tags")}
             value={formik.values.tags}
             className="form-control py-3 mb-3"
-            id=""
           >
             <option value="" disabled>
               Chọn Tag
@@ -245,13 +240,14 @@ const Addproduct = () => {
             allowClear
             className="w-100"
             placeholder="Chọn màu sắc"
-            defaultValue={color}
-            onChange={(i) => handleColors(i)}
-            options={coloropt}
+            defaultValue={formik.values.color} // Sử dụng formik.values.color
+            onChange={handleColors}
+            options={colorOptions}
           />
           <div className="error">
             {formik.touched.color && formik.errors.color}
           </div>
+
           <CustomInput
             type="number"
             label="Nhập số lượng sản phẩm"
@@ -265,7 +261,13 @@ const Addproduct = () => {
           </div>
           <div className="bg-white border-1 p-5 text-center">
             <Dropzone
-              onDrop={(acceptedFiles) => dispatch(uploadImg(acceptedFiles))}
+              onDrop={(acceptedFiles) => {
+                if (acceptedFiles.length > 0) {
+                  dispatch(uploadImg(acceptedFiles));
+                } else {
+                  console.error("Không có file nào được chọn.");
+                }
+              }}
             >
               {({ getRootProps, getInputProps }) => (
                 <section>
@@ -280,20 +282,19 @@ const Addproduct = () => {
             </Dropzone>
           </div>
           <div className="showimages d-flex flex-wrap gap-3">
-            {imgState?.map((i, j) => {
-              return (
-                <div className=" position-relative" key={j}>
-                  <button
-                    type="button"
-                    onClick={() => dispatch(delImg(i.public_id))}
-                    className="btn-close position-absolute"
-                    style={{ top: "10px", right: "10px" }}
-                  ></button>
-                  <img src={i.url} alt="" width={200} height={200} />
-                </div>
-              );
-            })}
+            {images.map((img, index) => (
+              <div className="position-relative" key={index}>
+                <button
+                  type="button"
+                  onClick={() => dispatch(delImg(img.public_id))}
+                  className="btn-close position-absolute"
+                  style={{ top: "10px", right: "10px" }}
+                ></button>
+                <img src={img.url} alt="" width={200} height={200} />
+              </div>
+            ))}
           </div>
+
           <button
             className="btn btn-success border-0 rounded-3 my-5"
             type="submit"
@@ -306,4 +307,4 @@ const Addproduct = () => {
   );
 };
 
-export default Addproduct;
+export default AddProduct;
