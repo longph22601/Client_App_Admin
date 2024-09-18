@@ -42,6 +42,7 @@ const AddProduct = () => {
   const brandState = useSelector((state) => state.brand.brands);
   const catState = useSelector((state) => state.pCategory.pCategories);
   const colorState = useSelector((state) => state.color.colors);
+  const [sizeInput, setSizeInput] = useState('')
   const imgState = useSelector((state) => state.upload.images || []);
 
   const newProduct = useSelector((state) => state.product);
@@ -115,11 +116,13 @@ const AddProduct = () => {
       category: productCategory || "",
       tags: productTags || "",
       color: productColor || [], // Khởi tạo `color` là mảng
+      size: [],
       quantity: productQuantity || "",
       images: productImage || "",
     },
     validationSchema: schema,
     onSubmit: (values) => {
+      values.size = sizeInput.split(':').map((item) => item.trim()).filter(Boolean);
       values.images = images; // Gắn hình ảnh đã tải lên vào values
       if (getProductId !== undefined) {
         const data = { id: getProductId, productData: values };
@@ -246,6 +249,18 @@ const AddProduct = () => {
           />
           <div className="error">
             {formik.touched.color && formik.errors.color}
+          </div>
+
+          <CustomInput
+            type="text"
+            label="Nhập kích cỡ sản phẩm (ngăn cách bằng dấu `:`)"
+            name="size"
+            value={sizeInput}
+            onChng={(e) => setSizeInput(e.target.value)}
+            onBlr={formik.handleBlur("size")}
+          />
+          <div className="error">
+            {formik.touched.size && formik.errors.size}
           </div>
 
           <CustomInput
